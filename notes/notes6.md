@@ -17,6 +17,12 @@ notion de reference : à comprendre
 ####exercice:
 ####questions:
 ####notes:
+encodage de password:
+Dans AppFixtures:
+$this->passwordEncoder->encodePassword($user, "psswd")
+Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface
 
-
+\Faker\Factory::create()
+->realText(30)
+->dateTime
 
