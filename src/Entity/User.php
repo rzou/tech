@@ -2,12 +2,23 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @ApiResource(
+ *     normalizationContext={
+ *          "groups" = {"read"}
+ *     }
+ * )
+ * @UniqueEntity("username")
  */
 class User implements UserInterface
 {
@@ -15,36 +26,62 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"read"})
+     * @Assert\NotBlank()
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Regex(
+     *     pattern="/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{7,}/",
+     *     message="password must be seven characters long at least
+     *              and must contain digits, uppercase letters and
+     *              lowercase letters"
+     * )
      */
     private $password;
 
     /**
+     * @Assert\NotBlank()
+     * @Assert\Expression(
+     *     "this.getPassword() == this.getRetypePassword()",
+     *     message="Passwords do not match"
+     * )
+     */
+    private $retypePassword;
+
+    /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"read"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=6, max=255)
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Email()
      */
     private $email;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\BlogPost", mappedBy="author")
+     * @Groups({"read"})
      */
     private $posts;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="author")
+     * @Groups({"read"})
      */
     private $comments;
 
@@ -139,7 +176,7 @@ class User implements UserInterface
      */
     public function getRoles()
     {
-
+        return ["ROLE_USER"];
     }
 
     /**
@@ -151,7 +188,7 @@ class User implements UserInterface
      */
     public function getSalt()
     {
-
+        return null;
     }
 
     /**
@@ -163,6 +200,16 @@ class User implements UserInterface
     public function eraseCredentials()
     {
 
+    }
+
+    public function getRetypePassword()
+    {
+        return $this->retypePassword;
+    }
+
+    public function setRetypePassword($retypePassword): void
+    {
+        $this->retypePassword = $retypePassword;
     }
 
 }

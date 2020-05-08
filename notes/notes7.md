@@ -1,5 +1,7 @@
 ####commands:
 * this section was plenty of annotations 
+php bin/console debug:container ...
+=> to search a service
 
 
 
@@ -18,6 +20,10 @@ le nom de la classe. Comment appelle t-on le web service ? le route ?
 Comment controler la liste des attributs retournés? 
 Par les groups @Groups
 ####notes:
+apiResource
+  itemOperations
+  collectionOperations
+  groups
 serialize = normalize + encode
 deserialize = decode + denormalize
 https://regex101.com/
