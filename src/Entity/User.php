@@ -14,8 +14,30 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @ApiResource(
- *     normalizationContext={
- *          "groups" = {"read"}
+ *     itemOperations={
+ *          "get" = {
+ *                "access_control" = "is_granted('IS_AUTHENTICATED_FULLY')",
+ *                "normalization_context"={
+ *                      "groups"="get"
+ *                 }
+ *          },
+ *          "put"={
+ *              "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object==user",
+ *              "denormalization_context"={
+ *                      "groups"="put"
+ *               },
+ *              "normalizationContext"={
+ *                      "groups"="get"
+ *               }
+ *           }
+ *     },
+ *     collectionOperations={
+ *          "post"={
+ *                "denormalization_context"={
+ *                      "groups"="post"
+ *                 },
+ *                "normalizationContext"={"groups"="get"},
+ *          }
  *     }
  * )
  * @UniqueEntity("username")
@@ -26,13 +48,13 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"read"})
+     * @Groups({"get"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"read"})
+     * @Groups({"get", "post"})
      * @Assert\NotBlank()
      */
     private $username;
@@ -46,6 +68,7 @@ class User implements UserInterface
      *              and must contain digits, uppercase letters and
      *              lowercase letters"
      * )
+     * @Groups({"put","post"})
      */
     private $password;
 
@@ -55,12 +78,13 @@ class User implements UserInterface
      *     "this.getPassword() == this.getRetypePassword()",
      *     message="Passwords do not match"
      * )
+     * @Groups({"put","post"})
      */
     private $retypePassword;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"read"})
+     * @Groups({"put","post", "get"})
      * @Assert\NotBlank()
      * @Assert\Length(min=6, max=255)
      */
@@ -70,6 +94,7 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank()
      * @Assert\Email()
+     * @Groups({"put","post"})
      */
     private $email;
 

@@ -4,38 +4,64 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ApiResource()
  * @ORM\Entity(repositoryClass="App\Repository\CommentRepository")
+ * @ApiResource(
+ *     itemOperations={
+ *          "get",
+ *          "put"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object.getAuthor()==user"}
+ *     },
+ *     collectionOperations={
+ *          "get",
+ *          "post" = {"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ *     },
+ *      denormalizationContext={
+ *          "groups"="post"
+ *      },
+ *     subresourceOperations={
+ *          "api_blog_posts_comments_get_subresource"={
+ *                  "method"="GET",
+ *                  "normalizationContext"={"groups"={"get"}}
+ *          }
+ *     }
+ * )
  */
-class Comment
+class Comment implements AuthoredEntityInterface, PublishedDateEntityInterface
 {
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"get-comment-with-author"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"post", "get-comment-with-author"})
      */
     private $content;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"get-comment-with-author"})
      */
     private $published;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="comments")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"get-comment-with-author"})
      */
     private $author;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\BlogPost", inversedBy="comments")
+     * @Groups({"post"})
      */
     private $post;
 
@@ -61,7 +87,7 @@ class Comment
         return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
         $this->published = $published;
 
@@ -71,16 +97,16 @@ class Comment
     /**
      * @return User
      */
-    public function getAuthor(): User
+    public function getAuthor(): UserInterface
     {
         return $this->author;
     }
 
     /**
-     * @param User $author
-     * @return Comment
+     * @param UserInterface $author
+     * @return AuthoredEntityInterface
      */
-    public function setAuthor(User $author): self
+    public function setAuthor(UserInterface $author): AuthoredEntityInterface
     {
         $this->author = $author;
         return $this;
